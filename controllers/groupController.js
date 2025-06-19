@@ -9,17 +9,24 @@ function logError(error) {
   });
 }
 
-module.exports = {
-  async createGroup(name, members) {
-    try {
-      const group = new Group({ name, members });
-      return await group.save();
-    } catch (error) {
-      logError(error);
-      throw error;
-    }
-  },
+exports.createGroup = async (req, res, fields) => {
+  const { name, members } = fields || req.body;
+  if (!name || !members || !Array.isArray(members) || members.length === 0) {
+    res.writeHead(400, { 'Content-Type': 'application/json' });
+    return res.end(JSON.stringify({ error: 'Nome do grupo e membros são obrigatórios.' }));
+  }
+  try {
+    const group = new Group({ name, members });
+    await group.save();
+    res.writeHead(201, { 'Content-Type': 'application/json' });
+    return res.end(JSON.stringify(group));
+  } catch (error) {
+    res.writeHead(500, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({ error: 'Erro interno ao criar grupo.' }));
+  }
+};
 
+module.exports = {
   async listGroups() {
     try {
       return await Group.find().populate('members');

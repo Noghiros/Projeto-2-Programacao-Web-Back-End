@@ -6,6 +6,9 @@ const userRoutes = require('./routes/userRoute');
 const chatRoutes = require('./routes/chatRoute');
 const mongoose = require('mongoose');
 const errorLogger = require('./middlewares/errorLogger');
+const session = require('express-session');
+const RedisStore = require('connect-redis').default;
+const { createClient } = require('redis');
 
 // Conectar ao MongoDB
 mongoose.connect('mongodb://localhost:27017/whatsapp2', {
@@ -16,6 +19,9 @@ mongoose.connect('mongodb://localhost:27017/whatsapp2', {
 }).catch((err) => {
   console.error("Erro na conexão com MongoDB:", err);
 });
+
+const redisClient = createClient({ legacyMode: true });
+redisClient.connect().catch(console.error);
 
 const PORT = 3000;
 
@@ -38,6 +44,19 @@ const server = http.createServer((req, res) => {
   res.writeHead(404, { 'Content-Type': 'application/json' });
   res.end(JSON.stringify({ error: 'Rota não encontrada' }));
 });
+
+app.use(session({
+  store: new RedisStore({ client: redisClient }),
+  secret: 'sua_chave_secreta', // troque por uma chave forte
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    secure: false, // true se usar HTTPS
+    httpOnly: true,
+    maxAge: 1000 * 60 * 60 // 1 hora
+  }
+}));
+app.use('/', userRoutes);
 
 server.listen(PORT, () => {
   console.log(`Servidor rodando em http://localhost:${PORT}`);

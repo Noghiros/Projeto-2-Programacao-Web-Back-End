@@ -24,46 +24,46 @@ const registerLoad = async (req, res) => {
 };
 
 // Realiza o registro
-const register = async (req, res) => {
-    const form = new formidable.IncomingForm({
-        uploadDir: path.join(__dirname, '../public/images'),
-        keepExtensions: true
-    });
+exports.register = async (req, res) => {
+  const { name, email, password } = req.body;
+  if (!name || !email || !password) {
+    return res.status(400).json({ error: 'Nome, email e senha são obrigatórios.' });
+  }
 
-    form.parse(req, async (err, fields, files) => {
-        if (err) {
-            res.writeHead(500);
-            res.end("Erro ao processar o formulário");
-            return;
-        }
+  const form = new formidable.IncomingForm({
+      uploadDir: path.join(__dirname, '../public/images'),
+      keepExtensions: true
+  });
 
-        if (!fields.name || !fields.email || !fields.password) {
-            res.writeHead(400, { 'Content-Type': 'application/json' });
-            return res.end(JSON.stringify({ error: 'Nome, email e senha são obrigatórios.' }));
-        }
+  form.parse(req, async (err, fields, files) => {
+      if (err) {
+          res.writeHead(500);
+          res.end("Erro ao processar o formulário");
+          return;
+      }
 
-        try {
-            const passwordHash = await bcrypt.hash(fields.password, 10);
-            const imagePath = files.image?.newFilename || 'default.png';
+      try {
+          const passwordHash = await bcrypt.hash(fields.password, 10);
+          const imagePath = files.image?.newFilename || 'default.png';
 
-            const user = new User({
-                name: fields.name,
-                email: fields.email,
-                image: 'images/' + imagePath,
-                password: passwordHash,
-                is_online: false
-            });
+          const user = new User({
+              name: fields.name,
+              email: fields.email,
+              image: 'images/' + imagePath,
+              password: passwordHash,
+              is_online: false
+          });
 
-            await user.save();
+          await user.save();
 
-            res.writeHead(200, { 'Content-Type': 'text/html' });
-            res.end(`<h1>Cadastro realizado com sucesso!</h1><a href="/login">Login</a>`);
-        } catch (error) {
-            console.log(error.message);
-            res.writeHead(500, { 'Content-Type': 'text/html' });
-            res.end(`<h1>Erro ao registrar. Tente novamente.</h1>`);
-        }
-    });
+          res.writeHead(200, { 'Content-Type': 'text/html' });
+          res.end(`<h1>Cadastro realizado com sucesso!</h1><a href="/login">Login</a>`);
+      } catch (error) {
+          console.log(error.message);
+          res.writeHead(500, { 'Content-Type': 'text/html' });
+          res.end(`<h1>Erro ao registrar. Tente novamente.</h1>`);
+      }
+  });
 };
 
 // Exibe a página de login

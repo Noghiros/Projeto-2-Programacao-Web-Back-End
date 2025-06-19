@@ -3,6 +3,19 @@ const path = require('path');
 const userController = require('../controllers/userController');
 const auth = require('../middlewares/auth');
 const formidable = require('formidable');
+const loginController = require('../controllers/loginController');
+const express = require('express');
+const router = express.Router();
+const { requireAuth } = require('../middlewares/auth');
+
+router.get('/dashboard', requireAuth, (req, res) => {
+    res.send('Bem-vindo à área protegida!');
+});
+
+router.delete('/user/delete/:id', requireAuth, (req, res) => {
+    const id = req.params.id;
+    return userController.deleteUser(req, res, id);
+});
 
 function userRoutes(req, res) {
     const { url, method } = req;
@@ -36,12 +49,14 @@ function userRoutes(req, res) {
                 userController.register(req, res, fields, files);
             }
         });
-    } else if (url.startsWith('/user/delete/') && method === 'DELETE') {
-        return userController.deleteUser(req, res);
+    } else if (url === '/login' && method === 'POST') {
+        loginController.login(req, res);
+    } else if (url === '/logout' && method === 'POST') {
+        loginController.logout(req, res);
     } else {
         res.writeHead(404, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify({ error: 'Rota não encontrada' }));
     }
 }
 
-module.exports = userRoutes;
+module.exports = { userRoutes, router };

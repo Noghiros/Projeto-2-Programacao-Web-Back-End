@@ -1,21 +1,21 @@
 const Chat = require('../models/chatModel');
 
 // Cria mensagem
-const createMessage = async (req, res, fields) => {
-    try {
-        const { sender, receiver, message } = fields;
-        if (!sender || !receiver || !message) {
-            res.writeHead(400, { 'Content-Type': 'application/json' });
-            return res.end(JSON.stringify({ error: 'Campos obrigatórios.' }));
-        }
-        const chat = new Chat({ sender, receiver, message });
-        await chat.save();
-        res.writeHead(201, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify(chat));
-    } catch (error) {
-        res.writeHead(500, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({ error: 'Erro ao criar mensagem.' }));
-    }
+exports.createMessage = async (req, res, fields) => {
+  const { sender, receiver, message } = fields || req.body;
+  if (!sender || !receiver || !message) {
+    res.writeHead(400, { 'Content-Type': 'application/json' });
+    return res.end(JSON.stringify({ error: 'Remetente, destinatário e mensagem são obrigatórios.' }));
+  }
+  try {
+    const chat = new Chat({ sender, receiver, message });
+    await chat.save();
+    res.writeHead(201, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify(chat));
+  } catch (error) {
+    res.writeHead(500, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({ error: 'Erro interno ao enviar mensagem.' }));
+  }
 };
 
 //Lista mensagens
