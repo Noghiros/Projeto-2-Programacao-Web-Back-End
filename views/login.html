@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Registro - Sistema de Chat</title>
+  <title>Login - Sistema de Chat</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -43,10 +43,8 @@
       font-weight: bold;
     }
     
-    input[type="text"],
     input[type="email"],
-    input[type="password"],
-    input[type="file"] {
+    input[type="password"] {
       width: 100%;
       padding: 12px;
       border: 2px solid #ddd;
@@ -56,14 +54,13 @@
       box-sizing: border-box;
     }
     
-    input[type="text"]:focus,
     input[type="email"]:focus,
     input[type="password"]:focus {
       outline: none;
       border-color: #667eea;
     }
     
-    .btn-register {
+    .btn-login {
       width: 100%;
       background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       color: white;
@@ -75,7 +72,7 @@
       transition: transform 0.2s;
     }
     
-    .btn-register:hover {
+    .btn-login:hover {
       transform: translateY(-2px);
     }
     
@@ -102,12 +99,12 @@
       margin-right: 5px;
     }
     
-    .register-header {
+    .login-header {
       text-align: center;
       margin-bottom: 30px;
     }
     
-    .register-icon {
+    .login-icon {
       font-size: 3em;
       margin-bottom: 10px;
     }
@@ -115,20 +112,13 @@
 </head>
 <body>
   <div class="container">
-    <div class="register-header">
-      <div class="register-icon">👤</div>
-      <h1>Registro</h1>
-      <p style="color: #666;">Crie sua conta para acessar o sistema</p>
+    <div class="login-header">
+      <div class="login-icon">🔐</div>
+      <h1>Login</h1>
+      <p style="color: #666;">Entre na sua conta para acessar o sistema</p>
     </div>
     
-    <form action="/register" method="POST" enctype="multipart/form-data">
-      <div class="form-group">
-        <label for="name">
-          <span class="icon">👤</span>Nome
-        </label>
-        <input type="text" id="name" name="name" placeholder="Digite seu nome completo" required>
-      </div>
-      
+    <form action="/login" method="POST">
       <div class="form-group">
         <label for="email">
           <span class="icon">📧</span>E-mail
@@ -143,29 +133,18 @@
         <input type="password" id="password" name="password" placeholder="Digite sua senha" required>
       </div>
       
-      <div class="form-group">
-        <label for="image">
-          <span class="icon">📷</span>Foto de Perfil (Opcional)
-        </label>
-        <input type="file" id="image" name="image" accept="image/*">
-      </div>
-      
-      <button type="submit" class="btn-register">
-        <span class="icon">🚀</span>Registrar
+      <button type="submit" class="btn-login">
+        <span class="icon">🚀</span>Entrar
       </button>
     </form>
     
     <div class="links">
-      <a href="/login">
-        <span class="icon">🔐</span>Já tem conta? Faça login
+      <a href="/register">
+        <span class="icon">➕</span>Não tem conta? Registre-se
       </a>
       |
       <a href="/users">
         <span class="icon">👥</span>Ver usuários registrados
-      </a>
-      |
-      <a href="/chat">
-        <span class="icon">💬</span>Chat
       </a>
     </div>
   </div>

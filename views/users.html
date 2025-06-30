@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lista de Usuários</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      background-color: #f5f5f5;
+    }
+    
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      background-color: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    
+    h1 {
+      color: #333;
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    
+    .navigation {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    
+    .navigation a {
+      background-color: #007bff;
+      color: white;
+      padding: 10px 20px;
+      text-decoration: none;
+      border-radius: 5px;
+      margin: 0 10px;
+      transition: background-color 0.3s;
+    }
+    
+    .navigation a:hover {
+      background-color: #0056b3;
+    }
+    
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+    
+    th, td {
+      border: 1px solid #ddd;
+      padding: 12px;
+      text-align: left;
+    }
+    
+    th {
+      background-color: #f8f9fa;
+      font-weight: bold;
+      color: #495057;
+    }
+    
+    tr:nth-child(even) {
+      background-color: #f8f9fa;
+    }
+    
+    tr:hover {
+      background-color: #e9ecef;
+    }
+    
+    .user-image {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+    
+    .status-online {
+      color: #28a745;
+      font-weight: bold;
+    }
+    
+    .status-offline {
+      color: #6c757d;
+    }
+    
+    .actions {
+      text-align: center;
+    }
+    
+    .btn-delete {
+      background-color: #dc3545;
+      color: white;
+      border: none;
+      padding: 5px 10px;
+      border-radius: 3px;
+      cursor: pointer;
+      font-size: 12px;
+    }
+    
+    .btn-delete:hover {
+      background-color: #c82333;
+    }
+    
+    .no-users {
+      text-align: center;
+      color: #6c757d;
+      font-style: italic;
+      padding: 40px;
+    }
+    
+    .refresh-btn {
+      background-color: #28a745;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 5px;
+      cursor: pointer;
+      margin-bottom: 10px;
+    }
+    
+    .refresh-btn:hover {
+      background-color: #218838;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>📋 Lista de Usuários Registrados</h1>
+    
+    <div class="navigation">
+      <a href="/register">➕ Novo Registro</a>
+      <a href="/login">🔐 Login</a>
+      <button class="refresh-btn" onclick="location.reload()">🔄 Atualizar</button>
+    </div>
+    
+    <div id="userTable">
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Foto</th>
+            <th>Nome</th>
+            <th>Email</th>
+            <th>Status</th>
+            <th>Data de Registro</th>
+            <th>Ações</th>
+          </tr>
+        </thead>
+        <tbody id="usersTableBody">
+          <!-- Os dados dos usuários serão inseridos aqui -->
+        </tbody>
+      </table>
+      
+      <div id="noUsers" class="no-users" style="display: none;">
+        Nenhum usuário registrado ainda.
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Função para carregar os usuários
+    async function loadUsers() {
+      try {
+        const response = await fetch('/api/users');
+        const users = await response.json();
+        
+        const tbody = document.getElementById('usersTableBody');
+        const noUsers = document.getElementById('noUsers');
+        
+        if (users.length === 0) {
+          tbody.innerHTML = '';
+          noUsers.style.display = 'block';
+          return;
+        }
+        
+        noUsers.style.display = 'none';
+        
+        tbody.innerHTML = users.map(user => `
+          <tr>
+            <td>${user._id}</td>
+            <td>
+              <img src="/${user.image || 'public/images/default.png'}" 
+                   alt="Foto do usuário" 
+                   class="user-image"
+                   onerror="this.src='/public/images/default.png'">
+            </td>
+            <td>${user.name}</td>
+            <td>${user.email}</td>
+            <td>
+              <span class="${user.is_online ? 'status-online' : 'status-offline'}">
+                ${user.is_online ? '🟢 Online' : '🔴 Offline'}
+              </span>
+            </td>
+            <td>${new Date(user.createdAt).toLocaleDateString('pt-BR')}</td>
+            <td class="actions">
+              <button class="btn-delete" onclick="deleteUser('${user._id}')">
+                🗑️ Excluir
+              </button>
+            </td>
+          </tr>
+        `).join('');
+        
+      } catch (error) {
+        console.error('Erro ao carregar usuários:', error);
+        document.getElementById('usersTableBody').innerHTML = 
+          '<tr><td colspan="7" style="text-align: center; color: red;">Erro ao carregar usuários</td></tr>';
+      }
+    }
+    
+    // Função para excluir usuário
+    async function deleteUser(userId) {
+      if (!confirm('Tem certeza que deseja excluir este usuário?')) {
+        return;
+      }
+      
+      try {
+        const response = await fetch(`/user/delete/${userId}`, {
+          method: 'DELETE'
+        });
+        
+        if (response.ok) {
+          alert('Usuário excluído com sucesso!');
+          loadUsers(); // Recarrega a lista
+        } else {
+          alert('Erro ao excluir usuário');
+        }
+      } catch (error) {
+        console.error('Erro ao excluir usuário:', error);
+        alert('Erro ao excluir usuário');
+      }
+    }
+    
+    // Carrega os usuários quando a página carrega
+    document.addEventListener('DOMContentLoaded', loadUsers);
+  </script>
+</body>
+</html>

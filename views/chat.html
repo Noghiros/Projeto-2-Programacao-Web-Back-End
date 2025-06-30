@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chat - Sistema de Mensagens</title>
+  <style>
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+
+      background: linear-gradient(135deg, #7289da 0%, #5b6eae 100%);
+      
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    
+    .chat-container {
+      width: 90%;
+      max-width: 800px;
+      height: 90vh;
+      background: rgb(255, 255, 255);
+      border-radius: 12px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    
+    .chat-header {
+
+      background: linear-gradient(135deg, #7289da 0%, #5b6eae 100%);
+      
+      color: white;
+      padding: 20px;
+      text-align: center;
+      position: relative;
+    }
+    
+    .chat-header h1 {
+      font-size: 1.5em;
+      margin-bottom: 5px;
+    }
+    
+    .chat-header p {
+      opacity: 0.9;
+      font-size: 0.9em;
+    }
+    
+    .user-info {
+      position: absolute;
+      top: 50%;
+      right: 20px;
+      transform: translateY(-50%);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    
+    .user-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2em;
+    }
+    
+    .logout-btn {
+      background: rgba(255,255,255,0.2);
+      color: white;
+      border: none;
+      padding: 8px 15px;
+      border-radius: 20px;
+      cursor: pointer;
+      transition: all 0.3s;
+      text-decoration: none;
+      font-size: 0.9em;
+    }
+    
+    .logout-btn:hover {
+      background: rgba(255,255,255,0.3);
+    }
+    
+    .messages-container {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px;
+      background: #f8f9fa;
+    }
+    
+    .message {
+      margin-bottom: 15px;
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+    }
+    
+    .message.own {
+      flex-direction: row-reverse;
+    }
+    
+    .message-avatar {
+      width: 35px;
+      height: 35px;
+      border-radius: 50%;
+      background: #7289da;
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.9em;
+      font-weight: bold;
+      flex-shrink: 0;
+    }
+    
+    .message-content {
+      max-width: 70%;
+      background: white;
+      padding: 12px 15px;
+      border-radius: 18px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      position: relative;
+    }
+    
+    .message.own .message-content {
+   
+      background: linear-gradient(135deg, #7289da 0%, #5b6eae 100%);
+      
+      color: white;
+    }
+    
+    .message-text {
+      word-wrap: break-word;
+      line-height: 1.4;
+    }
+    
+    .message-time {
+      font-size: 0.75em;
+      opacity: 0.7;
+      margin-top: 5px;
+      text-align: right;
+    }
+    
+    .message.own .message-time {
+      color: rgba(255,255,255,0.8);
+    }
+    
+    .message-sender {
+      font-size: 0.8em;
+      font-weight: bold;
+      margin-bottom: 3px;
+      color: #7289da;
+    }
+    
+    .message.own .message-sender {
+      color: rgba(255,255,255,0.9);
+    }
+    
+    .message-input-container {
+      padding: 20px;
+      background: white;
+      border-top: 1px solid #eee;
+      display: flex;
+      gap: 15px;
+      align-items: center;
+    }
+    
+    .message-input {
+      flex: 1;
+      padding: 15px 20px;
+      border: 2px solid #eee;
+      border-radius: 25px;
+      outline: none;
+      font-size: 16px;
+      transition: border-color 0.3s;
+    }
+    
+    .message-input:focus {
+      
+      outline: none;
+    
+      border-color: #7289da;
+
+    }
+    
+    .send-btn {
+      width: 50px;
+      height: 50px;
+   
+      background: linear-gradient(135deg, #7289da 0%, #5b6eae 100%);
+      
+      color: white;
+      border: none;
+      border-radius: 50%;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2em;
+      transition: transform 0.2s;
+    }
+    
+    .send-btn:hover {
+      transform: scale(1.05);
+    }
+    
+    .send-btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+    
+    .loading {
+      text-align: center;
+      padding: 20px;
+      color: #666;
+    }
+    
+    .error {
+      background: #ff6b6b;
+      color: white;
+      padding: 10px;
+      text-align: center;
+      margin: 10px 20px;
+      border-radius: 8px;
+    }
+    
+    .nav-links {
+      position: absolute;
+      top: 50%;
+      left: 20px;
+      transform: translateY(-50%);
+      display: flex;
+      gap: 10px;
+    }
+    
+    .nav-link {
+      background: rgba(255,255,255,0.2);
+      color: white;
+      text-decoration: none;
+      padding: 8px 12px;
+      border-radius: 15px;
+      font-size: 0.8em;
+      transition: all 0.3s;
+    }
+    
+    .nav-link:hover {
+      background: rgba(255,255,255,0.3);
+    }
+    
+    .empty-chat {
+      text-align: center;
+      padding: 50px 20px;
+      color: #666;
+    }
+    
+    .empty-chat-icon {
+      font-size: 3em;
+      margin-bottom: 15px;
+      opacity: 0.5;
+    }
+    
+    /* Scrollbar personalizada */
+    .messages-container::-webkit-scrollbar {
+      width: 6px;
+    }
+    
+    .messages-container::-webkit-scrollbar-track {
+      background: #f1f1f1;
+    }
+    
+    .messages-container::-webkit-scrollbar-thumb {
+      background: #c1c1c1;
+      border-radius: 3px;
+    }
+    
+    .messages-container::-webkit-scrollbar-thumb:hover {
+      background: #a8a8a8;
+    }
+  </style>
+</head>
+<body>
+  <div class="chat-container">
+    <div class="chat-header">
+      <div class="nav-links">
+        <a href="/users" class="nav-link">👥 Usuários</a>
+        <a href="/login" class="nav-link">🔐 Login</a>
+      </div>
+      
+      <h1>💬 Chat Geral</h1>
+      <p>Sistema de Mensagens Instantâneas</p>
+      
+      <div class="user-info">
+        <div class="user-avatar">👤</div>
+        <span id="currentUser">Usuário</span>
+        <a href="/logout" class="logout-btn">Sair</a>
+      </div>
+    </div>
+    
+    <div class="messages-container" id="messagesContainer">
+      <div class="loading" id="loadingMessages">
+        ⏳ Carregando mensagens...
+      </div>
+    </div>
+    
+    <div class="message-input-container">
+      <input 
+        type="text" 
+        class="message-input" 
+        id="messageInput" 
+        placeholder="Digite sua mensagem..." 
+        maxlength="500"
+      >
+      <button class="send-btn" id="sendBtn" onclick="sendMessage()">
+        ➤
+      </button>
+    </div>
+  </div>
+
+  <script>
+    let currentUserId = null;
+    let currentUserName = 'Usuário Anônimo';
+    
+    // Simular usuário logado (em um projeto real, isso viria da sessão)
+    const simulateLoggedUser = () => {
+      const userData = localStorage.getItem('currentUser');
+      if (userData) {
+        const user = JSON.parse(userData);
+        currentUserId = user.id || Date.now().toString();
+        currentUserName = user.name || 'Usuário';
+      } else {
+        // Criar usuário temporário para demonstração
+        currentUserId = Date.now().toString();
+        currentUserName = prompt('Digite seu nome:') || 'Usuário Anônimo';
+        localStorage.setItem('currentUser', JSON.stringify({
+          id: currentUserId,
+          name: currentUserName
+        }));
+      }
+      
+      document.getElementById('currentUser').textContent = currentUserName;
+    };
+    
+    // Carregar mensagens
+    const loadMessages = async () => {
+      try {
+        const response = await fetch('/api/chat');
+        if (response.ok) {
+          const messages = await response.json();
+          displayMessages(messages);
+        } else {
+          throw new Error('Erro ao carregar mensagens');
+        }
+      } catch (error) {
+        console.error('Erro:', error);
+        document.getElementById('loadingMessages').innerHTML = 
+          '<div class="error">Erro ao carregar mensagens. Tentando novamente...</div>';
+        
+        // Tentar novamente após 3 segundos
+        setTimeout(loadMessages, 3000);
+      }
+    };
+    
+    // Exibir mensagens na tela
+    const displayMessages = (messages) => {
+      const container = document.getElementById('messagesContainer');
+      
+      if (messages.length === 0) {
+        container.innerHTML = `
+          <div class="empty-chat">
+            <div class="empty-chat-icon">💬</div>
+            <h3>Nenhuma mensagem ainda</h3>
+            <p>Seja o primeiro a enviar uma mensagem!</p>
+          </div>
+        `;
+        return;
+      }
+      
+      container.innerHTML = '';
+      
+      messages.forEach(message => {
+        const messageDiv = document.createElement('div');
+        const isOwnMessage = message.sender_id === currentUserId || 
+                           message.sender === currentUserName;
+        
+        messageDiv.className = `message ${isOwnMessage ? 'own' : ''}`;
+        
+        const senderName = message.sender || message.sender_name || 'Usuário';
+        const messageTime = new Date(message.createdAt || message.timestamp || Date.now())
+                           .toLocaleTimeString('pt-BR', { 
+                             hour: '2-digit', 
+                             minute: '2-digit' 
+                           });
+        
+        messageDiv.innerHTML = `
+          <div class="message-avatar">
+            ${isOwnMessage ? '👤' : '👤'}
+          </div>
+          <div class="message-content">
+            ${!isOwnMessage ? `<div class="message-sender">${senderName}</div>` : ''}
+            <div class="message-text">${escapeHtml(message.message)}</div>
+            <div class="message-time">${messageTime}</div>
+          </div>
+        `;
+        
+        container.appendChild(messageDiv);
+      });
+      
+      // Scroll para a última mensagem
+      container.scrollTop = container.scrollHeight;
+    };
+    
+    // Enviar mensagem
+    const sendMessage = async () => {
+      const input = document.getElementById('messageInput');
+      const sendBtn = document.getElementById('sendBtn');
+      const message = input.value.trim();
+      
+      if (!message) return;
+      
+      // Desabilitar botão durante envio
+      sendBtn.disabled = true;
+      sendBtn.innerHTML = '⏳';
+      
+      try {
+        const formData = new FormData();
+        formData.append('sender', currentUserName);
+        formData.append('sender_id', currentUserId);
+        formData.append('receiver', 'Geral');
+        formData.append('message', message);
+        
+        const response = await fetch('/chat', {
+          method: 'POST',
+          body: formData
+        });
+        
+        if (response.ok) {
+          input.value = '';
+          // Recarregar mensagens
+          setTimeout(loadMessages, 500);
+        } else {
+          throw new Error('Erro ao enviar mensagem');
+        }
+      } catch (error) {
+        console.error('Erro:', error);
+        alert('Erro ao enviar mensagem. Tente novamente.');
+      } finally {
+        // Reabilitar botão
+        sendBtn.disabled = false;
+        sendBtn.innerHTML = '➤';
+        input.focus();
+      }
+    };
+    
+    // Enviar mensagem com Enter
+    document.getElementById('messageInput').addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        sendMessage();
+      }
+    });
+    
+    // Função para escapar HTML
+    const escapeHtml = (text) => {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    };
+    
+    // Atualizar mensagens a cada 3 segundos
+    const startAutoRefresh = () => {
+      setInterval(loadMessages, 3000);
+    };
+    
+    // Inicializar quando a página carregar
+    document.addEventListener('DOMContentLoaded', () => {
+      simulateLoggedUser();
+      loadMessages();
+      startAutoRefresh();
+      document.getElementById('messageInput').focus();
+    });
+  </script>
+</body>
+</html>

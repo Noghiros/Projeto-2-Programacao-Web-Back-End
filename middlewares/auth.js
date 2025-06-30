@@ -1,49 +1,80 @@
-const session = require('express-session');
-const RedisStore = require('connect-redis')(session);
-const redis = require('redis');
+const fs = require('fs');
+const path = require('path');
 
-const redisClient = redis.createClient({
-    host: 'localhost',
-    port: 6379
-});
+// Arquivo de sessões
+const sessionsFile = path.join(__dirname, '../data/sessions.json');
 
-const isLogin = (session) => {
-    if (session && session.user) {
-        // Usuário já está logado
-        return { redirect: '/dashboard' };
+// Função para ler sessões
+const readSessionsFromFile = () => {
+    try {
+        if (fs.existsSync(sessionsFile)) {
+            const data = fs.readFileSync(sessionsFile, 'utf8');
+            return JSON.parse(data);
+        }
+        return {};
+    } catch (error) {
+        console.log('Erro ao ler arquivo de sessões:', error);
+        return {};
     }
-    // Usuário não está logado, pode prosseguir
-    return { proceed: true };
 };
 
-const isLogout = (session) => {
-    if (!session || !session.user) {
-        // Usuário não está logado
-        return { redirect: '/login' };
+// Verificar se sessão é válida
+const isValidSession = (sessionId) => {
+    const sessions = readSessionsFromFile();
+    const session = sessions[sessionId];
+    if (!session) return null;
+    
+    // Verificar se não expirou
+    if (new Date() > new Date(session.expiresAt)) {
+        return null;
     }
-    // Usuário está logado, pode prosseguir
-    return { proceed: true };
+    
+    return session;
 };
 
-// Middleware Express 
-function requireAuth(req, res, next) {
-  if (req.session && req.session.userId) {
-    return next();
-  }
-  res.writeHead(401, { 'Content-Type': 'application/json' });
-  res.end(JSON.stringify({ error: 'Acesso não autorizado.' }));
-}
+// Extrair sessionId do cookie
+const getSessionIdFromCookies = (cookieHeader) => {
+    if (!cookieHeader) return null;
+    const cookies = cookieHeader.split(';');
+    const sessionCookie = cookies.find(c => c.trim().startsWith('sessionId='));
+    return sessionCookie ? sessionCookie.split('=')[1] : null;
+};
 
-// Configuração da sessão
-app.use(session({
-    store: new RedisStore({ client: redisClient }),
-    secret: 'seu_segredo_aqui',
-    resave: false,
-    saveUninitialized: false
-}));
+// Middleware para verificar autenticação
+const requireAuth = (req, res, next) => {
+    const sessionId = getSessionIdFromCookies(req.headers.cookie);
+    const session = sessionId ? isValidSession(sessionId) : null;
+    
+    if (!session) {
+        // Não autenticado - redirecionar para login
+        res.writeHead(302, { 'Location': '/login' });
+        res.end();
+        return;
+    }
+    
+    // Adicionar dados da sessão ao request
+    req.user = session;
+    next();
+};
+
+// Middleware para páginas que não requerem autenticação
+const redirectIfAuthenticated = (req, res, next) => {
+    const sessionId = getSessionIdFromCookies(req.headers.cookie);
+    const session = sessionId ? isValidSession(sessionId) : null;
+    
+    if (session) {
+        // Já autenticado - redirecionar para chat
+        res.writeHead(302, { 'Location': '/chat' });
+        res.end();
+        return;
+    }
+    
+    next();
+};
 
 module.exports = {
-    isLogin,
-    isLogout,
-    requireAuth
+    requireAuth,
+    redirectIfAuthenticated,
+    isValidSession,
+    getSessionIdFromCookies
 };

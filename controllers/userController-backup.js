@@ -128,7 +128,7 @@ const register = async (req, res) => {
             res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
             res.end(`
                 <div style="font-family: Arial, sans-serif; text-align: center; margin: 50px; padding: 20px; background: linear-gradient(135deg, #28a745, #20c997); color: white; border-radius: 8px;">
-                    <h1>✅ Cadastro realizado com sucesso!</h1>
+                    <h1> Cadastro realizado com sucesso!</h1>
                     <p>Usuário <strong>${name}</strong> foi registrado com sucesso!</p>
                     <p>Redirecionando para a lista de usuários...</p>
                     <script>

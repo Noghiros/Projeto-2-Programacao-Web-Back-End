@@ -1,0 +1,11 @@
+[
+  {
+    "_id": "1751224947624",
+    "name": "Victor",
+    "email": "vcalado28@gmail.com",
+    "image": "images/default.png",
+    "password": "$2b$10$dkWiZH89McJdydufhsuPw.CbL77jqCenT1C4sXcYyGl6e6PJ92Igi",
+    "is_online": false,
+    "createdAt": "2025-06-29T19:22:27.624Z"
+  }
+]
